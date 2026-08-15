@@ -1,0 +1,44 @@
+version: '3.8'
+
+services:
+  # MySQL Database Service
+  db:
+    image: mysql:8.0
+    container_name: threat_detection_db
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: threat_detection
+      MYSQL_USER: threat_user
+      MYSQL_PASSWORD: threat_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Flask ML Backend Service
+  backend:
+    build:
+      context: ./apps/backend
+      dockerfile: Dockerfile
+    container_name: threat_detection_backend
+    restart: always
+    environment:
+      - PORT=5000
+      - FLASK_ENV=development
+      - DATABASE_URL=mysql+pymysql://threat_user:threat_password@db:3306/threat_detection
+    ports:
+      - "5000:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - hf_cache:/root/.cache/huggingface
+
+volumes:
+  mysql_data:
+  hf_cache:
