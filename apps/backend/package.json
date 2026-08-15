@@ -1,0 +1,11 @@
+{
+  "name": "backend",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "dev": "bash -c 'if [ ! -d .venv ]; then python3 -m venv .venv && .venv/bin/pip install -r requirements.txt; fi && .venv/bin/python app.py'",
+    "build": "bash -c 'if [ ! -d .venv ]; then python3 -m venv .venv; fi && .venv/bin/pip install -r requirements.txt'",
+    "lint": "echo \"No lint configured for backend\"",
+    "typecheck": "echo \"No typecheck configured for backend\""
+  }
+}
