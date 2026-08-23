@@ -10,33 +10,124 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as DashboardRouteImport } from './routes/dashboard'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as RegisterRouteImport } from './routes/register'
+import { Route as DashboardFeedRouteImport } from './routes/dashboard.feed'
+import { Route as DashboardMetricsRouteImport } from './routes/dashboard.metrics'
+import { Route as DashboardModelsRouteImport } from './routes/dashboard.models'
+import { Route as DashboardSimulatorRouteImport } from './routes/dashboard.simulator'
 
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const DashboardRoute = DashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const RegisterRoute = RegisterRouteImport.update({
+  id: '/register',
+  path: '/register',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const DashboardFeedRoute = DashboardFeedRouteImport.update({
+  id: '/feed',
+  path: '/feed',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardMetricsRoute = DashboardMetricsRouteImport.update({
+  id: '/metrics',
+  path: '/metrics',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardModelsRoute = DashboardModelsRouteImport.update({
+  id: '/models',
+  path: '/models',
+  getParentRoute: () => DashboardRoute,
+} as any)
+const DashboardSimulatorRoute = DashboardSimulatorRouteImport.update({
+  id: '/simulator',
+  path: '/simulator',
+  getParentRoute: () => DashboardRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/dashboard/feed': typeof DashboardFeedRoute
+  '/dashboard/metrics': typeof DashboardMetricsRoute
+  '/dashboard/models': typeof DashboardModelsRoute
+  '/dashboard/simulator': typeof DashboardSimulatorRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/dashboard/feed': typeof DashboardFeedRoute
+  '/dashboard/metrics': typeof DashboardMetricsRoute
+  '/dashboard/models': typeof DashboardModelsRoute
+  '/dashboard/simulator': typeof DashboardSimulatorRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/dashboard': typeof DashboardRouteWithChildren
+  '/login': typeof LoginRoute
+  '/register': typeof RegisterRoute
+  '/dashboard/feed': typeof DashboardFeedRoute
+  '/dashboard/metrics': typeof DashboardMetricsRoute
+  '/dashboard/models': typeof DashboardModelsRoute
+  '/dashboard/simulator': typeof DashboardSimulatorRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/'
+  fullPaths:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/dashboard/feed'
+    | '/dashboard/metrics'
+    | '/dashboard/models'
+    | '/dashboard/simulator'
   fileRoutesByTo: FileRoutesByTo
-  to: '/'
-  id: '__root__' | '/'
+  to:
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/dashboard/feed'
+    | '/dashboard/metrics'
+    | '/dashboard/models'
+    | '/dashboard/simulator'
+  id:
+    | '__root__'
+    | '/'
+    | '/dashboard'
+    | '/login'
+    | '/register'
+    | '/dashboard/feed'
+    | '/dashboard/metrics'
+    | '/dashboard/models'
+    | '/dashboard/simulator'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  DashboardRoute: typeof DashboardRouteWithChildren
+  LoginRoute: typeof LoginRoute
+  RegisterRoute: typeof RegisterRoute
 }
 
 declare module '@tanstack/react-router' {
@@ -48,11 +139,81 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/dashboard': {
+      id: '/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof DashboardRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/register': {
+      id: '/register'
+      path: '/register'
+      fullPath: '/register'
+      preLoaderRoute: typeof RegisterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/dashboard/feed': {
+      id: '/dashboard/feed'
+      path: '/feed'
+      fullPath: '/dashboard/feed'
+      preLoaderRoute: typeof DashboardFeedRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/metrics': {
+      id: '/dashboard/metrics'
+      path: '/metrics'
+      fullPath: '/dashboard/metrics'
+      preLoaderRoute: typeof DashboardMetricsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/models': {
+      id: '/dashboard/models'
+      path: '/models'
+      fullPath: '/dashboard/models'
+      preLoaderRoute: typeof DashboardModelsRouteImport
+      parentRoute: typeof DashboardRoute
+    }
+    '/dashboard/simulator': {
+      id: '/dashboard/simulator'
+      path: '/simulator'
+      fullPath: '/dashboard/simulator'
+      preLoaderRoute: typeof DashboardSimulatorRouteImport
+      parentRoute: typeof DashboardRoute
+    }
   }
 }
 
+interface DashboardRouteChildren {
+  DashboardFeedRoute: typeof DashboardFeedRoute
+  DashboardMetricsRoute: typeof DashboardMetricsRoute
+  DashboardModelsRoute: typeof DashboardModelsRoute
+  DashboardSimulatorRoute: typeof DashboardSimulatorRoute
+}
+
+const DashboardRouteChildren: DashboardRouteChildren = {
+  DashboardFeedRoute: DashboardFeedRoute,
+  DashboardMetricsRoute: DashboardMetricsRoute,
+  DashboardModelsRoute: DashboardModelsRoute,
+  DashboardSimulatorRoute: DashboardSimulatorRoute,
+}
+
+const DashboardRouteWithChildren = DashboardRoute._addFileChildren(
+  DashboardRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  DashboardRoute: DashboardRouteWithChildren,
+  LoginRoute: LoginRoute,
+  RegisterRoute: RegisterRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

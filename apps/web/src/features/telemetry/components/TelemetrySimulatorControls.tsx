@@ -1,6 +1,7 @@
 import { useState } from "react"
 import { Button } from "@workspace/ui/components/button"
 import { ingestTelemetryApi } from "../api/ingestService"
+import { Lightning, EnvelopeSimple, Globe } from "@phosphor-icons/react"
 
 interface TelemetrySimulatorControlsProps {
   onIngested: () => void
@@ -18,27 +19,36 @@ export function TelemetrySimulatorControls({ onIngested }: TelemetrySimulatorCon
 
   return (
     <div className="flex flex-wrap items-center gap-2">
-      <span className="text-xs text-neutral-400 mr-1">Simulate Threat:</span>
+      <span className="text-xs font-semibold text-neutral-500 mr-1">Simulate Ingest:</span>
       <Button 
+        size="sm"
         disabled={isSimulating}
-        className="text-xs bg-red-950/80 hover:bg-red-900 border border-red-800/50 text-red-200"
+        variant="outline"
+        className="text-xs bg-rose-50 hover:bg-rose-100 border-rose-200 text-rose-700 font-semibold"
         onClick={() => handleSimulate("network")}
       >
-        + Network Anomaly
+        <Lightning className="w-3.5 h-3.5 mr-1 text-rose-600" weight="fill" />
+        <span>Network Anomaly</span>
       </Button>
       <Button 
+        size="sm"
         disabled={isSimulating}
-        className="text-xs bg-amber-950/80 hover:bg-amber-900 border border-amber-800/50 text-amber-200"
+        variant="outline"
+        className="text-xs bg-amber-50 hover:bg-amber-100 border-amber-200 text-amber-700 font-semibold"
         onClick={() => handleSimulate("phishing")}
       >
-        + Phishing Email
+        <EnvelopeSimple className="w-3.5 h-3.5 mr-1 text-amber-600" weight="bold" />
+        <span>Phishing Email</span>
       </Button>
       <Button 
+        size="sm"
         disabled={isSimulating}
-        className="text-xs bg-orange-950/80 hover:bg-orange-900 border border-orange-800/50 text-orange-200"
+        variant="outline"
+        className="text-xs bg-blue-50 hover:bg-blue-100 border-blue-200 text-blue-700 font-semibold"
         onClick={() => handleSimulate("url")}
       >
-        + Malicious URL
+        <Globe className="w-3.5 h-3.5 mr-1 text-blue-600" weight="bold" />
+        <span>Malicious URL</span>
       </Button>
     </div>
   )

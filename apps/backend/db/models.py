@@ -1,6 +1,7 @@
 import datetime
-from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey, JSON
-from sqlalchemy.orm import relationship
+from typing import Optional
+from sqlalchemy import Column, Integer, String, Float, Text, DateTime, ForeignKey
+from sqlalchemy.orm import Mapped, mapped_column, relationship
 from .database import Base
 
 class Event(Base):
@@ -81,3 +82,26 @@ class Alert(Base):
                 "explanation": self.prediction.explanation
             } if self.prediction else None
         }
+
+class User(Base):
+    __tablename__ = "users"
+
+    id: Mapped[int] = mapped_column(Integer, primary_key=True, index=True, autoincrement=True)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
+    email: Mapped[str] = mapped_column(String(150), unique=True, nullable=False, index=True)
+    password_hash: Mapped[str] = mapped_column(String(255), nullable=False)
+    organization: Mapped[Optional[str]] = mapped_column(String(150), nullable=True)
+    role: Mapped[str] = mapped_column(String(50), default="ANALYST") # ADMIN, ANALYST, VIEWER
+    session_token: Mapped[Optional[str]] = mapped_column(String(255), nullable=True, index=True)
+    created_at: Mapped[datetime.datetime] = mapped_column(DateTime, default=datetime.datetime.utcnow)
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "email": self.email,
+            "organization": self.organization,
+            "role": self.role,
+            "created_at": self.created_at.isoformat() if self.created_at else None
+        }
+

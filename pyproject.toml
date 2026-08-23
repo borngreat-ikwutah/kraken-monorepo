@@ -1,0 +1,26 @@
+[tool.ty.environment]
+extra-paths = [
+    "apps/backend",
+    "apps/backend/controllers",
+    "apps/backend/routes",
+    "apps/backend/db",
+    "apps/backend/ml"
+]
+virtualenv = ".venv"
+python = ".venv/bin/python"
+
+[tool.pyright]
+include = ["apps/backend"]
+extraPaths = [
+    "apps/backend",
+    "apps/backend/controllers",
+    "apps/backend/routes",
+    "apps/backend/db",
+    "apps/backend/ml"
+]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.10"
+reportMissingImports = false
+reportMissingTypeStubs = false
+reportGeneralTypeIssues = false

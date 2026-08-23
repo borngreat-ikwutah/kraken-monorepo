@@ -102,4 +102,5 @@ apps/web/src/
 ## 🛠️ Code Quality & Verification Rules
 
 1. **Strict TypeScript Types**: Never use `any`. Always define explicit interfaces in `features/<feature>/types/`.
-2. **Run Verification Commands**: Always verify edits using `bun run typecheck` and `bun run lint`.
+2. **Strict Python Type Annotations**: Never use bare generic types like `dict` or `tuple`. All dictionaries must specify generic parameters (e.g. `dict[str, Any]` or `dict[str, float]`) and all tuples must define positional element types (e.g. `tuple[dict[str, Any], int]`).
+3. **Run Verification Commands**: Always verify edits using `bun run typecheck`, `bun run lint`, and `bun run --filter backend test`.

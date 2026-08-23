@@ -9,7 +9,7 @@ class TextFeatureExtractor:
     ]
 
     @staticmethod
-    def extract(text_content: str) -> dict:
+    def extract(text_content: str) -> dict[str, float]:
         text = text_content.strip()
         lower_text = text.lower()
         length = len(text)

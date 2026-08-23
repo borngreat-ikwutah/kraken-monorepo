@@ -1,8 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router"
-import { SOCDashboardView } from "../features/dashboard/components/SOCDashboardView"
+import { LandingPageView } from "../features/landing/components/LandingPageView"
 
-export const Route = createFileRoute("/")({ component: SOCDashboardPage })
+export const Route = createFileRoute("/")({ component: HomePage })
 
-function SOCDashboardPage() {
-  return <SOCDashboardView />
+function HomePage() {
+  return <LandingPageView />
 }

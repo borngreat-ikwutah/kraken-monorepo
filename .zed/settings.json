@@ -1,0 +1,49 @@
+{
+  "languages": {
+    "Python": {
+      "language_servers": ["pyright", "ruff", "ty", "..."],
+      "python": {
+        "python_path": ".venv/bin/python",
+        "venv": ".venv"
+      }
+    }
+  },
+  "lsp": {
+    "ty": {
+      "settings": {
+        "python": {
+          "pythonPath": ".venv/bin/python",
+          "venv": ".venv"
+        },
+        "environment": {
+          "virtualenv": ".venv",
+          "python": ".venv/bin/python",
+          "extraPaths": [
+            "apps/backend",
+            "apps/backend/controllers",
+            "apps/backend/routes",
+            "apps/backend/db",
+            "apps/backend/ml"
+          ]
+        }
+      }
+    },
+    "pyright": {
+      "settings": {
+        "python": {
+          "pythonPath": ".venv/bin/python",
+          "venv": ".venv",
+          "analysis": {
+            "extraPaths": [
+              "apps/backend",
+              "apps/backend/controllers",
+              "apps/backend/routes",
+              "apps/backend/db",
+              "apps/backend/ml"
+            ]
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,25 @@
+{
+  "include": [
+    "apps/backend"
+  ],
+  "extraPaths": [
+    "apps/backend",
+    "apps/backend/controllers",
+    "apps/backend/routes",
+    "apps/backend/db",
+    "apps/backend/ml"
+  ],
+  "venvPath": "apps/backend",
+  "venv": ".venv",
+  "pythonVersion": "3.10",
+  "reportMissingImports": false,
+  "reportMissingTypeStubs": false,
+  "reportGeneralTypeIssues": false,
+  "reportUnknownMemberType": false,
+  "reportUnknownVariableType": false,
+  "reportUnknownArgumentType": false,
+  "reportUntypedFunctionDecorator": false,
+  "reportUnusedImport": false,
+  "reportUnusedVariable": false,
+  "reportOptionalMemberAccess": false
+}
