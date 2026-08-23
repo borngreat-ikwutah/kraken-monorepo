@@ -1,6 +1,10 @@
 import { Button } from "@workspace/ui/components/button"
+import { Card, CardHeader, CardTitle, CardContent } from "@workspace/ui/components/card"
+import { Separator } from "@workspace/ui/components/separator"
 import type { AlertItem } from "../types/alert.types"
 import { SeverityBadge } from "./SeverityBadge"
+import { StatusBadge } from "./StatusBadge"
+import { Check, ArrowUpRight, XCircle, Brain, TerminalWindow } from "@phosphor-icons/react"
 
 interface AlertDetailDrawerProps {
   alert: AlertItem | null
@@ -10,83 +14,116 @@ interface AlertDetailDrawerProps {
 export function AlertDetailDrawer({ alert, onAction }: AlertDetailDrawerProps) {
   if (!alert) {
     return (
-      <div className="bg-neutral-900/40 border border-neutral-800 rounded-lg p-5">
-        <h2 className="text-base font-semibold mb-4">Alert Detail & Investigation</h2>
-        <div className="py-20 text-center text-neutral-500 text-xs">
+      <Card className="bg-white border-neutral-200/80 shadow-xs">
+        <CardHeader className="pb-3 border-b border-neutral-100">
+          <CardTitle className="text-base font-bold text-neutral-950">Incident Investigation</CardTitle>
+          <p className="text-xs text-neutral-500">Payload inspection & model attribution</p>
+        </CardHeader>
+        <CardContent className="py-24 text-center text-neutral-400 text-xs">
           <p>Select an alert from the feed to inspect telemetry payloads, model decision explanations, and take analyst action.</p>
-        </div>
-      </div>
+        </CardContent>
+      </Card>
     )
   }
 
   return (
-    <div className="bg-neutral-900/40 border border-neutral-800 rounded-lg p-5">
-      <h2 className="text-base font-semibold mb-4">Alert Detail & Investigation</h2>
+    <Card className="bg-white border-neutral-200/80 shadow-xs">
+      <CardHeader className="pb-3 border-b border-neutral-100">
+        <div className="flex items-center justify-between">
+          <CardTitle className="text-base font-bold text-neutral-950">Incident Investigation</CardTitle>
+          <span className="font-mono text-xs font-bold text-neutral-400">#{alert.id}</span>
+        </div>
+        <p className="text-xs text-neutral-500">Payload inspection & model attribution</p>
+      </CardHeader>
 
-      <div className="space-y-4 text-xs leading-relaxed">
-        <div className="p-3 bg-neutral-900 rounded-md border border-neutral-800 space-y-1.5">
-          <div className="flex justify-between">
-            <span className="text-neutral-400">Alert ID:</span>
-            <span className="font-mono font-bold">#{alert.id}</span>
-          </div>
+      <CardContent className="p-5 space-y-5 text-xs">
+        {/* Incident Status Info Box */}
+        <div className="p-3.5 bg-neutral-50 rounded-xl border border-neutral-200/70 space-y-2">
           <div className="flex justify-between items-center">
-            <span className="text-neutral-400">Severity:</span>
+            <span className="text-neutral-500 font-medium">Severity Level:</span>
             <SeverityBadge severity={alert.severity} />
           </div>
-          <div className="flex justify-between">
-            <span className="text-neutral-400">Status:</span>
-            <span className="font-mono">{alert.status}</span>
+          <div className="flex justify-between items-center">
+            <span className="text-neutral-500 font-medium">Current Status:</span>
+            <StatusBadge status={alert.status} />
+          </div>
+          <div className="flex justify-between items-center">
+            <span className="text-neutral-500 font-medium">Threat Vector:</span>
+            <span className="font-mono font-semibold text-neutral-800">{alert.threat_type}</span>
           </div>
         </div>
 
-        {/* Telemetry Payload */}
+        {/* Telemetry Payload Box */}
         <div>
-          <p className="font-semibold text-neutral-300 mb-1">Telemetry Payload:</p>
-          <div className="p-3 bg-black/60 rounded border border-neutral-800 font-mono text-[11px] text-neutral-300 overflow-x-auto max-h-40">
+          <div className="flex items-center gap-1.5 font-semibold text-neutral-900 mb-1.5">
+            <TerminalWindow className="w-4 h-4 text-neutral-600" />
+            <span>Telemetry Payload:</span>
+          </div>
+          <div className="p-3 bg-neutral-900 text-neutral-100 rounded-xl border border-neutral-800 font-mono text-[11px] overflow-x-auto max-h-44 shadow-inner">
             {alert.event?.raw_payload}
           </div>
         </div>
 
         {/* Model Explanation */}
         {alert.prediction && (
-          <div className="p-3 bg-neutral-900/80 rounded border border-neutral-800 space-y-2">
-            <p className="font-semibold text-neutral-300">ML Model Decision Explanation:</p>
-            <p className="text-neutral-400">{alert.prediction.explanation}</p>
-            <div className="w-full bg-neutral-800 rounded-full h-2 mt-2 overflow-hidden">
-              <div 
-                className="bg-red-500 h-2 rounded-full transition-all"
-                style={{ width: `${alert.prediction.score * 100}%` }}
-              />
+          <div className="p-4 bg-blue-50/40 rounded-xl border border-blue-100 space-y-2.5">
+            <div className="flex items-center gap-1.5 font-semibold text-blue-950">
+              <Brain className="w-4 h-4 text-blue-600" />
+              <span>ML Model Decision & Explanation:</span>
             </div>
-            <p className="text-right text-[10px] text-neutral-500">Threat Score: {(alert.prediction.score * 100).toFixed(1)}%</p>
+            <p className="text-neutral-700 leading-relaxed">{alert.prediction.explanation}</p>
+            
+            <div className="space-y-1 pt-1">
+              <div className="flex justify-between text-[11px] font-medium text-neutral-600">
+                <span>Threat Probability</span>
+                <span className="font-bold text-blue-600">{(alert.prediction.score * 100).toFixed(1)}%</span>
+              </div>
+              <div className="w-full bg-neutral-200 rounded-full h-2 overflow-hidden">
+                <div 
+                  className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+                  style={{ width: `${alert.prediction.score * 100}%` }}
+                />
+              </div>
+            </div>
           </div>
         )}
 
+        <Separator />
+
         {/* Analyst Actions */}
-        <div className="pt-3 border-t border-neutral-800 space-y-2">
-          <p className="font-semibold text-neutral-300">Analyst Workflow Actions:</p>
-          <div className="flex flex-wrap gap-2">
+        <div className="space-y-2.5">
+          <p className="font-bold text-neutral-900">Analyst Workflow Actions:</p>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
             <Button 
-              className="text-xs bg-blue-900/60 hover:bg-blue-800 text-blue-200 border border-blue-700/40"
+              size="sm"
+              variant="outline"
+              className="text-xs bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200 font-semibold"
               onClick={() => onAction(alert.id, "ACKNOWLEDGED", "TRUE_POSITIVE")}
             >
-              Acknowledge
+              <Check className="w-3.5 h-3.5 mr-1" />
+              <span>Acknowledge</span>
             </Button>
             <Button 
-              className="text-xs bg-purple-900/60 hover:bg-purple-800 text-purple-200 border border-purple-700/40"
+              size="sm"
+              variant="outline"
+              className="text-xs bg-emerald-50 hover:bg-emerald-100 text-emerald-700 border-emerald-200 font-semibold"
               onClick={() => onAction(alert.id, "RESOLVED", "TRUE_POSITIVE")}
             >
-              Resolve
+              <ArrowUpRight className="w-3.5 h-3.5 mr-1" />
+              <span>Resolve</span>
             </Button>
             <Button 
-              className="text-xs bg-neutral-800 hover:bg-neutral-700 text-neutral-300 border border-neutral-700"
+              size="sm"
+              variant="outline"
+              className="text-xs bg-neutral-100 hover:bg-neutral-200 text-neutral-700 border-neutral-200 font-semibold"
               onClick={() => onAction(alert.id, "FALSE_POSITIVE", "FALSE_POSITIVE")}
             >
-              Mark False Positive
+              <XCircle className="w-3.5 h-3.5 mr-1" />
+              <span>False Pos</span>
             </Button>
           </div>
         </div>
-      </div>
-    </div>
+      </CardContent>
+    </Card>
   )
 }

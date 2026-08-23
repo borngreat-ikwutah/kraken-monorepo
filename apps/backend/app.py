@@ -8,6 +8,7 @@ from db.database import init_db, SessionLocal
 from db.models import Event, Feature, Prediction, Alert
 from ml.extractors import NetworkFeatureExtractor, UrlFeatureExtractor, TextFeatureExtractor
 from ml.models import ModelRegistry
+from routes.auth_routes import auth_bp
 
 load_dotenv()
 
@@ -15,6 +16,9 @@ app = Flask(__name__)
 
 # Enable CORS for frontend applications
 CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://127.0.0.1:3000", "*"]}})
+
+# Register Modular Route Blueprints
+app.register_blueprint(auth_bp)
 
 # Initialize Database and ML Model Registry
 print("🚀 Initializing Threat Detection Backend Engine...")

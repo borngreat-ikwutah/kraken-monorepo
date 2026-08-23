@@ -1,11 +1,11 @@
+from typing import Any
 import math
-import json
 
 class NetworkFeatureExtractor:
     """Extracts numerical features from network flow records."""
     
     @staticmethod
-    def extract(payload_data: dict) -> dict:
+    def extract(payload_data: dict[str, Any]) -> dict[str, float]:
         bytes_sent = float(payload_data.get("bytes_sent", 0))
         bytes_received = float(payload_data.get("bytes_recv", 0))
         packets_sent = float(payload_data.get("packets_sent", 1))

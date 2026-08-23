@@ -1,6 +1,8 @@
+from typing import Any
+from .ensemble_scorer import EnsembleScorer
+from .hf_transformer import TransformerEvaluator, PhishingNLPDetector
 from .isolation_forest import NetworkAnomalyDetector
-from .random_forest import ThreatClassifier
-from .hf_transformer import PhishingNLPDetector
+from .random_forest import RandomForestEvaluator, ThreatClassifier
 
 class ModelRegistry:
     """Registry managing model loading, versioning, and execution."""
@@ -8,33 +10,52 @@ class ModelRegistry:
     def __init__(self):
         print("🧠 Initializing ML Model Registry...")
         self.network_detector = NetworkAnomalyDetector()
-        self.threat_classifier = ThreatClassifier()
-        self.nlp_detector = PhishingNLPDetector()
+        self.rf_evaluator = RandomForestEvaluator()
+        self.transformer_evaluator = TransformerEvaluator()
+        # Aliases
+        self.threat_classifier = self.rf_evaluator
+        self.nlp_detector = self.transformer_evaluator
         print("✅ ML Model Registry fully loaded.")
 
-    def run_inference(self, event_type: str, raw_payload: str, features: dict) -> dict:
-        """Dispatches inference to appropriate model(s) based on event type."""
-        predictions = []
+    def run_inference(self, event_type: str, raw_payload: str, features: dict[str, Any]) -> dict[str, Any]:
+        """
+        Dispatches inference to appropriate models based on event type and executes ensemble consensus.
+        Guarantees strict return type of dict[str, Any].
+        """
+        # Convert any generic feature map to strictly float values
+        features_float: dict[str, float] = {
+            k: float(v) for k, v in features.items() if isinstance(v, (int, float, bool))
+        }
 
-        if event_type == "network_flow":
-            pred = self.network_detector.predict(features)
+        predictions: list[dict[str, Any]] = []
+
+        if event_type == "url":
+            # Dual-model evaluation: Transformer + Random Forest
+            t_pred = self.transformer_evaluator.evaluate(raw_payload, features_float)
+            rf_pred = self.rf_evaluator.evaluate(features_float)
+            ensemble_pred = EnsembleScorer.score_url_threat(t_pred, rf_pred, features_float)
+
+            return {
+                "top_prediction": ensemble_pred,
+                "all_predictions": [t_pred, rf_pred, ensemble_pred],
+                "severity": ensemble_pred["severity"]
+            }
+
+        elif event_type == "network_flow":
+            pred = self.network_detector.predict(features_float)
             predictions.append(pred)
-        elif event_type == "url":
-            pred = self.threat_classifier.predict(features)
-            predictions.append(pred)
+
         elif event_type in ["email", "text", "log"]:
-            pred = self.nlp_detector.predict(raw_payload, features)
+            pred = self.transformer_evaluator.evaluate(raw_payload, features_float)
             predictions.append(pred)
+
         else:
-            # Fallback run all extractors
-            pred = self.threat_classifier.predict(features)
+            pred = self.rf_evaluator.evaluate(features_float)
             predictions.append(pred)
 
-        # Calculate ensemble / max score
         top_prediction = max(predictions, key=lambda x: x["score"])
+        score = float(top_prediction["score"])
 
-        # Determine severity score threshold
-        score = top_prediction["score"]
         if score >= 0.80:
             severity = "CRITICAL"
         elif score >= 0.60:

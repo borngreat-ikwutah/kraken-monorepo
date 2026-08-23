@@ -1,3 +1,4 @@
+from typing import Any
 import numpy as np
 from sklearn.ensemble import IsolationForest
 
@@ -9,35 +10,39 @@ class NetworkAnomalyDetector:
         self.model = IsolationForest(contamination=0.1, random_state=42)
         self._bootstrap_synthetic_baseline()
 
-    def _bootstrap_synthetic_baseline(self):
+    def _bootstrap_synthetic_baseline(self) -> None:
         """Train Isolation Forest on baseline normal network traffic feature vectors."""
         # Baseline normal features: [bytes, packets, duration, bytes/sec, pkts/sec, byte_ratio, dst_port, is_suspicious_port, port_entropy]
-        normal_samples = []
+        normal_samples: list[list[float]] = []
         for _ in range(100):
-            bytes_val = np.random.normal(5000, 1000)
-            packets_val = np.random.normal(50, 10)
-            duration_val = np.random.uniform(0.1, 5.0)
+            bytes_val = float(np.random.normal(5000, 1000))
+            packets_val = float(np.random.normal(50, 10))
+            duration_val = float(np.random.uniform(0.1, 5.0))
             bytes_sec = bytes_val / duration_val
             pkts_sec = packets_val / duration_val
-            byte_ratio = np.random.uniform(0.5, 2.0)
-            dst_port = np.random.choice([80, 443, 53, 22])
+            byte_ratio = float(np.random.uniform(0.5, 2.0))
+            dst_port = float(np.random.choice([80, 443, 53, 22]))
             is_suspicious = 0.0
             port_entropy = 1.2
             normal_samples.append([bytes_val, packets_val, duration_val, bytes_sec, pkts_sec, byte_ratio, dst_port, is_suspicious, port_entropy])
         
         self.model.fit(normal_samples)
 
-    def predict(self, feature_dict: dict) -> dict:
-        features_vector = [
-            feature_dict.get("total_bytes", 5000),
-            feature_dict.get("total_packets", 50),
-            feature_dict.get("duration", 1.0),
-            feature_dict.get("bytes_per_second", 5000),
-            feature_dict.get("packets_per_second", 50),
-            feature_dict.get("byte_ratio", 1.0),
-            feature_dict.get("dst_port", 80),
-            feature_dict.get("is_suspicious_port", 0.0),
-            feature_dict.get("port_entropy", 1.2),
+    def predict(self, feature_dict: dict[str, float]) -> dict[str, Any]:
+        """
+        Runs unsupervised anomaly detection on network flow features.
+        Guarantees strict return type of dict[str, Any].
+        """
+        features_vector: list[float] = [
+            float(feature_dict.get("total_bytes", 5000.0)),
+            float(feature_dict.get("total_packets", 50.0)),
+            float(feature_dict.get("duration", 1.0)),
+            float(feature_dict.get("bytes_per_second", 5000.0)),
+            float(feature_dict.get("packets_per_second", 50.0)),
+            float(feature_dict.get("byte_ratio", 1.0)),
+            float(feature_dict.get("dst_port", 80.0)),
+            float(feature_dict.get("is_suspicious_port", 0.0)),
+            float(feature_dict.get("port_entropy", 1.2)),
         ]
 
         # Decision function returns negative values for anomalies, positive for normal

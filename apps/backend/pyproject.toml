@@ -1,0 +1,26 @@
+[tool.ty.environment]
+extra-paths = [
+    ".",
+    "controllers",
+    "routes",
+    "db",
+    "ml"
+]
+virtualenv = ".venv"
+python = ".venv/bin/python"
+
+[tool.pyright]
+include = ["."]
+extraPaths = [
+    ".",
+    "controllers",
+    "routes",
+    "db",
+    "ml"
+]
+venvPath = "."
+venv = ".venv"
+pythonVersion = "3.10"
+reportMissingImports = false
+reportMissingTypeStubs = false
+reportGeneralTypeIssues = false

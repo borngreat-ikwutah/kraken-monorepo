@@ -1,4 +1,5 @@
 import { HeadContent, Scripts, createRootRoute } from "@tanstack/react-router"
+import { AuthProvider } from "../features/auth/context/AuthContext"
 
 import appCss from "@workspace/ui/globals.css?url"
 
@@ -13,7 +14,7 @@ export const Route = createRootRoute({
         content: "width=device-width, initial-scale=1",
       },
       {
-        title: "TanStack Start Starter",
+        title: "KrakenSec",
       },
     ],
     links: [
@@ -39,7 +40,9 @@ function RootDocument({ children }: { children: React.ReactNode }) {
         <HeadContent />
       </head>
       <body>
-        {children}
+        <AuthProvider>
+          {children}
+        </AuthProvider>
         <Scripts />
       </body>
     </html>
