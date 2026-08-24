@@ -7,7 +7,7 @@ class NetworkAnomalyDetector:
 
     def __init__(self):
         self.model_name = "IsolationForest-v1.0"
-        self.model = IsolationForest(contamination=0.1, random_state=42)
+        self.model = IsolationForest(contamination="auto", random_state=42)
         self._bootstrap_synthetic_baseline()
 
     def _bootstrap_synthetic_baseline(self) -> None:
@@ -59,3 +59,12 @@ class NetworkAnomalyDetector:
             "threat_label": threat_label,
             "explanation": f"Isolation Forest decision score: {decision_score:.3f} (Anomaly score: {anomaly_score:.2%})"
         }
+
+    def evaluate(self, feature_dict: dict[str, float]) -> dict[str, Any]:
+        """Alias for predict to match ModelEvaluator interface."""
+        return self.predict(feature_dict)
+
+
+# Backwards compatibility alias
+AnomalyDetector = NetworkAnomalyDetector
+
