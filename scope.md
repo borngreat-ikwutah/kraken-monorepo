@@ -1,107 +1,109 @@
-# 🌐 Scope: URL Feature Extraction & Transformer Threat Analysis
+# 🌐 Scope: Security Telemetry Ingestion, Multi-Model ML & Authentication
 
 **Target System**: `kraken-monorepo` (`apps/backend` + `apps/web`)  
-**Reference Document**: [`prd.md`](file:///home/borngreat/Desktop/school/kraken-monorepo/prd.md) Section 1.4, 1.5, & 2.1  
-**Purpose**: Build the complete end-to-end URL submission analysis pipeline featuring lexical/structural/entropy feature extraction, fine-tuned transformer classification + random forest ensemble scoring, database persistence, and a real-time investigation UI in the SOC dashboard.
+**Reference Document**: [`prd.md`](file:///home/borngreat/Desktop/school/kraken-monorepo/prd.md) Section 1.4, 1.5, 2.1, & Authentication Requirements  
+**Status**: ✅ **COMPLETED (Phase 1 & Phase 2 Final)**  
+**Purpose**: End-to-end security telemetry ingestion, feature extraction, dual-model ML inference, SOC incident triage, and secure session-based authentication consumed across the SOC dashboard.
 
 ---
 
 ## 🎯 Feature Overview & Objectives
 
-When a user or analyst submits a website URL for analysis:
-1. **Lexical & Statistical Feature Extraction (`UrlFeatureExtractor`)**:
-   - URL length, domain length, path length, query length.
-   - Subdomain count & depth analysis.
-   - Symbol & special character counts (`.`, `-`, `@`, `_`, `?`, `=`, `%`, `//`).
-   - Direct IP address host detection (IPv4 / IPv6 evasion).
-   - Shannon entropy score calculation across domain and full URL to detect Algorithmically Generated Domains (DGA) and randomized obfuscation.
-   - Suspicious token & keyword heuristics (e.g. `login`, `verify`, `account`, `update`, `secure`, `banking`, `token`, `wallet`) combined with abnormal/high-risk Top-Level Domains (`.xyz`, `.top`, `.pw`, `.cc`, `.tk`, `.ru`, `.click`, `.work`).
-2. **Dual-Model ML Threat Evaluation**:
-   - **Sequence-Classification Transformer (Hugging Face)**: Evaluates the URL text string directly and generates an NLP/semantic malicious probability score. Supports zero-config fallback heuristic NLP detector.
-   - **Supervised Classifier (Random Forest)**: Evaluates the extracted numerical feature vector (length, entropy, token presence, TLD risk, IP presence).
-   - **Combined Ensemble Verdict**: Weighted combination of Transformer confidence + Random Forest anomaly score (`0.0` to `1.0`) with clear verdict categorization (`SAFE` / `SUSPICIOUS` / `MALICIOUS`).
-3. **Database Persistence & Alert Dispatch**:
-   - Persist incoming event (`events`), extracted lexical features (`features`), model inferences (`predictions`), and high-confidence threat alerts (`alerts`) with automatic deduplication.
-4. **Analyst Sandbox & Inspection UI**:
-   - Submit URL directly from the SOC Ingestion Sandbox (`/dashboard/simulator`).
-   - Visual breakdown of extracted lexical indicators (entropy meter, suspicious tokens, domain depth, TLD risk).
-   - Model consensus comparison drawer showing Transformer score vs Random Forest score with contributing explanation signals.
+### 1. 🔐 User Authentication & Session Management (`apps/web/src/features/auth`)
+* **Backend Authentication MVC Layer (`apps/backend`)**:
+  * [`AuthController`](file:///home/borngreat/Desktop/school/kraken-monorepo/apps/backend/controllers/auth_controller.py): Handles registration, salted password hashing via `werkzeug.security`, credential validation, and bearer session issuance.
+  * [`auth_routes.py`](file:///home/borngreat/Desktop/school/kraken-monorepo/apps/backend/routes/auth_routes.py): REST endpoints mounted at `/api/auth/register`, `/api/auth/login`, and `/api/auth/me`.
+  * [`models.py`](file:///home/borngreat/Desktop/school/kraken-monorepo/apps/backend/db/models.py): `User` entity with `id`, `email`, `password_hash`, `name`, `organization`, `role`, `session_token`, and `created_at`.
+* **Frontend Authentication State (`apps/web/src/features/auth`)**:
+  * [`AuthContext.tsx`](file:///home/borngreat/Desktop/school/kraken-monorepo/apps/web/src/features/auth/context/AuthContext.tsx): Global reactive React context providing `user`, `token`, `isAuthenticated`, `login`, `register`, and `logout`.
+  * Persists session tokens and user state in `localStorage` with silent revalidation on load.
+* **Dashboard User Context Consumption**:
+  * [`DashboardLayout.tsx`](file:///home/borngreat/Desktop/school/kraken-monorepo/apps/web/src/features/dashboard/components/DashboardLayout.tsx): Top navigation bar and sidebar footer dynamically display the logged-in user's initials avatar, full name, email/organization, role badge (`ANALYST` / `ADMIN`), and instant logout trigger.
+  * [`DashboardSidebar.tsx`](file:///home/borngreat/Desktop/school/kraken-monorepo/apps/web/src/features/dashboard/components/DashboardSidebar.tsx): Sidebar profile card consuming `useAuth()` to reflect active session data.
 
 ---
 
-## 📋 Step-by-Step Implementation Plan
-
-```
-Phase 1: Advanced Lexical, Structural & Entropy Feature Extractor
-  ├── 1.1 Expand apps/backend/ml/extractors/url_extractor.py with:
-  │     ├── Shannon Entropy calculation (domain + full URL)
-  │     ├── Subdomain count & depth extraction
-  │     ├── Suspicious keyword detection & matching
-  │     ├── IPv4/IPv6 address host detection
-  │     └── High-risk TLD scoring
-  └── 1.2 Add unit tests for UrlFeatureExtractor in apps/backend/tests/test_url_extractor.py
-
-Phase 2: Transformer & ML Inference Engine Enhancement
-  ├── 2.1 Enhance apps/backend/ml/models/hf_transformer.py to support URL text sequence classification
-  ├── 2.2 Update apps/backend/ml/models/random_forest.py to consume the expanded URL feature vector
-  ├── 2.3 Update apps/backend/ml/models/registry.py with weighted ensemble scoring (Transformer + RF)
-  └── 2.4 Add inference unit tests verifying scoring outputs and threshold classification
-
-Phase 3: Backend Ingestion & Analysis Controller (MVC Refactor)
-  ├── 3.1 Create apps/backend/controllers/ingest_controller.py encapsulating /api/ingest workflow
-  ├── 3.2 Create apps/backend/routes/ingest_routes.py and register blueprint in app.py
-  └── 3.3 Ensure database session lifecycle & transactional integrity on Event/Feature/Prediction/Alert persistence
-
-Phase 4: Frontend URL Analysis UI & Feature Visualizer
-  ├── 4.1 Update apps/web/src/features/telemetry/types/telemetry.types.ts with strictly typed URL feature interfaces
-  ├── 4.2 Enhance IngestionSandboxView.tsx with:
-  │     ├── One-click sample malicious/benign URL presets
-  │     ├── Interactive Entropy & Risk Gauge
-  │     ├── Extracted Lexical & Structural Feature breakdown table
-  │     └── Multi-Model Consensus view (Transformer score vs Random Forest score)
-  └── 4.3 Link URL submissions seamlessly to the live Incident Feed (/dashboard/feed)
-
-Phase 5: Verification & Testing
-  ├── 5.1 Run backend pytest suite (bun run --filter backend test)
-  ├── 5.2 Run bun run typecheck & bun run lint across monorepo
-  └── 5.3 End-to-end sandbox verification with real & mock malicious URLs
-```
+### 2. ⚡ Telemetry Ingestion & Feature Extraction (`apps/web/src/features/telemetry`)
+* **Lexical, Statistical & Structural Feature Extraction**:
+  * **URL**: Shannon entropy for DGA detection, subdomain depth, suspicious tokens, high-risk TLDs, IP host evasion (`UrlFeatureExtractor`).
+  * **Phishing Text / Email**: Deceptive phrasing, urgency scoring, caps ratio, link presence (`TextFeatureExtractor`).
+  * **Network Flow**: Transfer rates, packet statistical metrics, protocol flags (`NetworkFeatureExtractor`).
+* **Dual-Model ML Threat Evaluation**:
+  * **Hugging Face Transformer (`DistilBERT`)**: Semantic sequence classification for phishing and deceptive text.
+  * **Random Forest Classifier**: Supervised tree classification consuming extracted feature vectors.
+  * **Isolation Forest**: Unsupervised high-dimensional network flow anomaly detection.
+  * **EnsembleScorer**: Weighted consensus score (60% Transformer + 40% Random Forest) with threat explanation attribution.
+* **Interactive Analyst UI**:
+  * Multi-tab Ingestion Sandbox (`/dashboard/simulator`) with one-click attack presets.
+  * Side-by-side **Visual Comparison Breakdown Cards** for **Transformer vs. Random Forest** scores.
+  * **Extracted Feature Vector Breakdown** displaying calculated mathematical features with risk tags.
 
 ---
 
-## 🛠️ Data Model & Feature Dictionary
+## 📋 Implementation Checklist
 
-```python
-# Extracted URL Features (dict[str, float])
-{
-    "url_length": float,
-    "domain_length": float,
-    "path_length": float,
-    "subdomain_count": float,
-    "num_dots": float,
-    "num_hyphens": float,
-    "num_at": float,
-    "num_question": float,
-    "num_equal": float,
-    "num_slash": float,
-    "num_digits": float,
-    "has_ip": float,               # 1.0 if IP host else 0.0
-    "has_suspicious_tld": float,   # 1.0 if abnormal TLD else 0.0
-    "suspicious_token_count": float, # count of tokens like login, verify, etc.
-    "domain_entropy": float,       # Shannon entropy of domain (bits)
-    "url_entropy": float           # Shannon entropy of full URL (bits)
-}
 ```
+Phase 1: Authentication & User Session Management [COMPLETED]
+  ├── ✅ AuthController with password hashing & session token management
+  ├── ✅ Auth Blueprint mounted at /api/auth (register, login, me)
+  ├── ✅ AuthContext React provider wrapping the application root
+  ├── ✅ Auth pages (/login, /register) with error handling & redirect
+  ├── ✅ Dashboard Top Bar & Sidebar dynamically displaying active user initials, name, role & email
+  └── ✅ Logout workflow returning analyst to login screen
+
+Phase 2: Feature Extractors (URL, NLP Text, Network) [COMPLETED]
+  ├── ✅ Shannon Entropy calculation (domain + full URL)
+  ├── ✅ Subdomain count, depth, and special character extraction
+  ├── ✅ Suspicious token scanner & high-risk TLD scoring
+  ├── ✅ Network flow rate and packet statistical extraction
+  └── ✅ Unit tests in apps/backend/tests/
+
+Phase 3: Transformer & ML Inference Engine [COMPLETED]
+  ├── ✅ TransformerEvaluator in apps/backend/ml/models/hf_transformer.py
+  ├── ✅ RandomForestEvaluator in apps/backend/ml/models/random_forest.py
+  ├── ✅ NetworkAnomalyDetector in apps/backend/ml/models/isolation_forest.py
+  ├── ✅ EnsembleScorer & ModelRegistry with consensus formulas
+  └── ✅ Pytest suite with 20 passing unit tests
+
+Phase 4: Ingestion Controller & Persistence [COMPLETED]
+  ├── ✅ IngestController in apps/backend/controllers/ingest_controller.py
+  ├── ✅ Ingest Blueprint mounted at /api/ingest and /api/predict
+  └── ✅ Transactional DB persistence for Events, Features, Predictions, and Alerts
+
+Phase 5: Frontend Telemetry Ingestion & Visualizer Feature [COMPLETED]
+  ├── ✅ types/ingest.types.ts with strict TypeScript interfaces
+  ├── ✅ api/ingestService.ts with live API calls and resilient fallback simulation
+  ├── ✅ hooks/useIngest.ts for reactive state management and presets
+  ├── ✅ components/ModelComparisonCards.tsx (Transformer vs. Random Forest visual breakdown)
+  ├── ✅ components/FeatureExtractorBreakdown.tsx (Engineered signal vector display)
+  ├── ✅ components/IngestionForm.tsx (Multi-vector tabbed input form with presets)
+  ├── ✅ components/IngestionSandbox.tsx (Container connecting all components)
+  └── ✅ Routed via apps/web/src/routes/dashboard.simulator.tsx
+
+Phase 6: Live Dashboard API & Database Migration [COMPLETED]
+  ├── ✅ Backend DashboardController with live SQL aggregations in apps/backend/controllers/dashboard_controller.py
+  ├── ✅ REST endpoints mounted at /api/analytics/metrics and /api/analytics/timeseries
+  ├── ✅ Incident detail & patch endpoints mounted at /api/alerts/:id (GET and PATCH)
+  ├── ✅ Frontend services in api/alertService.ts and types in types/alert.types.ts
+  ├── ✅ Custom reactive hooks: useAlerts, useAnalytics, useDashboardStats, useThreatModels
+  ├── ✅ Top Metrics Cards wired to live total_events, delta percentage, open_alerts, and precision_rate
+  ├── ✅ Detection Velocity & Weekly Threat Volume charts wired to dynamic timeseries aggregations
+  ├── ✅ Live Incident Triage Stream wired to paginated GET /api/alerts with severity and search query parameters
+  ├── ✅ Deep Investigation Drawer wired to GET /api/alerts/:id and PATCH /api/alerts/:id (Ack, Resolve, False Positive)
+  └── ✅ Zero static mock arrays or mock fallback stores remaining in frontend bundle
+
+Phase 7: Verification & Quality Assurance [COMPLETED]
+  ├── ✅ All 26 backend pytest tests passing (100%)
+  ├── ✅ Turbo typecheck passing with 0 errors across monorepo
+  ├── ✅ Turbo lint passing with 0 errors across monorepo
+  └── ✅ Turbo build passing production client and server bundles
+```
+
 
 ---
 
-## 🔒 Security & Code Quality Principles
+## 🔒 Security & Code Quality Standards
 
-- **Strict Typing Compliance**:
-  - **Python**: Never use bare generic containers (`dict` or `tuple`). All dictionary parameters and returns must be strictly parameterized (e.g. `dict[str, Any]`, `dict[str, float]`) and all tuples must define explicit element types (e.g. `tuple[dict[str, Any], int]`).
-  - **TypeScript**: No `any`. All API responses and form payloads must be typed via explicit interfaces in `features/<feature>/types/`.
-- **Fault-Tolerant ML Execution**:
-  - Graceful fallback from Hugging Face Transformer to heuristic NLP scoring if offline or uninstalled.
-  - Zero-config SQLite fallback if MySQL database connection is unavailable.
-- **Input Sanitization**:
-  - URL normalization and scheme validation (`http://`, `https://`) prior to parsing to avoid crashes.
+- **Strict Typing Compliance**: Zero `any` in TypeScript; strictly parameterized generic containers (`dict[str, Any]`, `tuple[dict[str, Any], int]`) in Python.
+- **Fault-Tolerant ML Execution**: Heuristic NLP fallback for offline systems; zero-config SQLite fallback for MySQL database connections.
+- **Strict Separation of Concerns**: Routes are thin composition layers; all business logic and UI components are fully encapsulated inside `features/`.

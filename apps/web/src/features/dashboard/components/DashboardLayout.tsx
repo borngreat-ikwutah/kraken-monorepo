@@ -9,12 +9,12 @@ import {
   Bell,
   MagnifyingGlass,
   Funnel,
-  Export,
-  User
+  Export
 } from "@phosphor-icons/react"
 import { Input } from "@workspace/ui/components/input"
 import { Button } from "@workspace/ui/components/button"
 import { useAuth } from "../../auth/context/AuthContext"
+import { useDashboardStats } from "../hooks/useDashboardStats"
 
 interface DashboardLayoutProps {
   children?: React.ReactNode
@@ -25,6 +25,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
   const router = useRouter()
   const currentPath = routerState.location.pathname
   const { user, logout } = useAuth()
+  const { stats } = useDashboardStats(8000)
   const [searchQuery, setSearchQuery] = useState("")
 
   const handleLogout = () => {
@@ -36,12 +37,14 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
     ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)
     : "SA"
 
+  const activeAlertsCount = stats?.active_incidents ?? stats?.total_alerts ?? 0
+
   const generalNavItems = [
     {
       to: "/dashboard/feed" as const,
       label: "Incident Triage",
       icon: Pulse,
-      badge: "4"
+      badge: activeAlertsCount > 0 ? String(activeAlertsCount) : undefined
     },
     {
       to: "/dashboard/models" as const,
@@ -171,13 +174,25 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
 
             <div className="h-4 w-px bg-slate-200 mx-1"></div>
 
+            {/* Logged in User Profile */}
             <div className="flex items-center gap-2.5 pl-1">
-              <div className="w-8 h-8 rounded-full bg-slate-200 flex items-center justify-center text-slate-600">
-                <User className="w-4 h-4" weight="bold" />
+              <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+                {userInitials}
               </div>
               <div className="hidden sm:block text-left">
-                <p className="text-xs font-bold text-slate-900 leading-tight">SOC Operator</p>
-                <p className="text-[10px] text-slate-400">Threat Intelligence</p>
+                <div className="flex items-center gap-1.5">
+                  <p className="text-xs font-bold text-slate-900 leading-tight">
+                    {user?.name || "SOC Analyst"}
+                  </p>
+                  {user?.role && (
+                    <span className="text-[9px] font-mono font-bold bg-blue-50 text-blue-700 px-1 py-0.5 rounded border border-blue-200">
+                      {user.role}
+                    </span>
+                  )}
+                </div>
+                <p className="text-[10px] text-slate-400">
+                  {user?.email || user?.organization || "analyst@krakensec.io"}
+                </p>
               </div>
             </div>
           </div>

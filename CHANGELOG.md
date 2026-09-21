@@ -7,40 +7,67 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ---
 
-## [Unreleased] - 2026-08-23
+## [1.1.0] - 2026-08-25
+
+### 🚀 Added (Live Dashboard API & Database Migration)
+- **Top Metrics Cards (`/api/analytics/metrics`)**:
+  - Live `total_events` count with 24-hour percentage growth delta computed from `events` table.
+  - Live `open_alerts` and `critical_open_count` from `alerts` table.
+  - Dynamically computed `precision_rate` and `false_positive_rate` based on analyst triage feedback (`TRUE_POSITIVE` vs. `FALSE_POSITIVE`).
+- **Timeseries & Detection Velocity (`/api/analytics/timeseries`)**:
+  - Dynamic detection throughput broken down by telemetry vector (Network Flow, Phishing SMTP, Malicious URL, Syslog).
+  - Weekly threat volume distribution across days of the week (Sun–Sat) with dynamic bar scaling and today highlight.
+- **Live Incident Triage Stream & Details (`/api/alerts` + `/api/alerts/:id`)**:
+  - Full query parameter filtering (`severity`, `status`, `q`/`search`) and pagination (`limit`, `offset`).
+  - Active incident detail fetching (`GET /api/alerts/:id`) with raw event payload and multi-model consensus explanation.
+  - Analyst workflow actions wired directly to `PATCH /api/alerts/:id` (Acknowledge, Resolve, Mark as False Positive).
+- **Zero Mock Data in Bundle**:
+  - Removed all mock fallback stores and arrays (`INITIAL_MOCK_ALERTS`, `localAlertsStore`, `addMockAlert`).
+  - Strict reactive hooks: `useAlerts`, `useAnalytics`, `useDashboardStats`, `useThreatModels`.
+
+---
+
+## [1.0.0] - 2026-08-24
+
+
+### 🚀 Added (Frontend Ingestion Feature & Visual Model Breakdown)
+- **Feature-Encapsulated Telemetry Module (`apps/web/src/features/telemetry/`)**:
+  - `types/ingest.types.ts`: Strict TypeScript interfaces for telemetry payloads, model predictions, sub-model scores, feature signals, and ingestion results.
+  - `api/ingestService.ts`: Live API connection to backend `POST /api/ingest` and `POST /api/predict` with zero-config client fallback simulator.
+  - `hooks/useIngest.ts`: Custom React hook managing input modes (URL, Phishing Email, Network Flow, Raw JSON), presets, API execution, and live state.
+  - `components/ModelComparisonCards.tsx`: Side-by-side visual comparison cards for **Hugging Face Transformer** (NLP Semantics) vs. **Random Forest Classifier** (Lexical/Structural ML), including agreement indicators, risk probability bars, verdict badges, and consensus weights.
+  - `components/FeatureExtractorBreakdown.tsx`: Visual matrix of engineered feature vectors with real-time suspicious signal tags.
+  - `components/IngestionForm.tsx`: Interactive multi-vector submission form with quick attack presets (Phish URL, DGA / C2, Phish Email, Benign URL).
+  - `components/IngestionSandbox.tsx`: Container component assembling the form, verdict badge, comparison cards, and feature breakdowns.
+- **Routing & Navigation**:
+  - Linked `/dashboard/simulator` via `dashboard.simulator.tsx` to the modular `IngestionSandboxView` component.
+
+### 🧠 Added (ML Engine & Ensemble Consensus Scoring)
+- **Multi-Model Consensus Scoring (`apps/backend/ml/models/`)**:
+  - `EnsembleScorer.score_text_threat`: Weighted consensus (65% Transformer + 35% Random Forest) for email, log, and text telemetry.
+  - `ModelRegistry.run_inference`: Dual-inference execution returning comprehensive sub-model evaluations across all vector types.
+  - `IngestController.ingest_event`: Transactional persistence of raw Events, Features, Predictions, and Alerts returning full model breakdowns.
+
+### 🧪 Verification & Quality Assurance
+- 20/20 backend unit tests passing with pytest (`bun run --filter backend test`).
+- Turborepo `typecheck` passing with 0 errors across monorepo (`bun run typecheck`).
+- Turborepo `lint` passing with 0 errors across monorepo (`bun run lint`).
+- Turborepo production `build` passing (`bun run build`).
+
+---
+
+## [0.2.0] - 2026-08-23
 
 ### 🧠 Added (ML Engine & URL Feature Extraction Pipeline)
-- **Advanced Lexical & Entropy Feature Extraction (`UrlFeatureExtractor`)**:
-  - Implemented in `apps/backend/ml/extractors/url_extractor.py`.
-  - Shannon entropy bit calculation for domain and full URL strings (DGA / obfuscation detection).
-  - Subdomain count, depth, path length, special character frequencies (`.`, `-`, `@`, `/`, `?`, `=`, `%`), and digit counts.
-  - Regex-based host IP address evasion detector (`has_ip`).
-  - Multi-keyword credential phishing token scanner (`login`, `verify`, `account`, `banking`, `wallet`, `token`, etc.) combined with abnormal TLD scoring (`.xyz`, `.top`, `.pw`, `.ru`, `.cc`, `.tk`, etc.).
-- **ML Model Evaluators & Ensemble Scorer**:
-  - `TransformerEvaluator` (`apps/backend/ml/models/hf_transformer.py`): Sequence classification pipeline (`bert-tiny`) with semantic heuristic fallback.
-  - `RandomForestEvaluator` (`apps/backend/ml/models/random_forest.py`): Supervised classifier consuming the 16-dimensional lexical feature vector with synthetic baseline bootstrapper.
-  - `EnsembleScorer` (`apps/backend/ml/models/ensemble_scorer.py`): Fuses Transformer semantic confidence (60%) and Random Forest structural anomaly score (40%) with signal explanations and severity categorization (`CRITICAL`, `HIGH`, `MEDIUM`, `LOW`).
-  - `ModelRegistry` (`apps/backend/ml/models/registry.py`): Multi-model execution and consensus dispatching.
-- **Automated Pytest Suite**:
-  - Added `apps/backend/tests/test_url_extractor.py` (5 unit tests).
-  - Added `apps/backend/tests/test_ml_models.py` (5 unit tests).
-  - Total automated test suite now at 17 passing tests (`bun run --filter backend test`).
+- Advanced Lexical & Entropy Feature Extraction (`UrlFeatureExtractor`) in `apps/backend/ml/extractors/url_extractor.py`.
+- `TransformerEvaluator` with `bert-tiny` / heuristic NLP fallback.
+- `RandomForestEvaluator` with synthetic baseline bootstrapper.
+- `EnsembleScorer` for URL threat scoring.
 
 ### 🔐 Added (Authentication & MVC Architecture)
-- **Backend MVC Authentication**:
-  - Implemented `AuthController` in `apps/backend/controllers/auth_controller.py` with registration, salted password hashing via `werkzeug.security`, and Bearer session persistence.
-  - Added `auth_bp` Blueprint in `apps/backend/routes/auth_routes.py` mounted under `/api/auth`.
-  - Added `session_token` column to `User` model in `apps/backend/db/models.py` using SQLAlchemy 2.0 `Mapped` annotations.
-- **Frontend Auth Integration**:
-  - Created `apps/web/src/features/auth/` containing `authService.ts`, `AuthContext.tsx`, `LoginForm.tsx`, and `RegisterForm.tsx`.
-  - Linked analyst profile info and logout action in `DashboardLayout.tsx` sidebar.
+- Backend `AuthController` with password hashing and session tokens.
+- Frontend `features/auth/` module with `LoginForm`, `RegisterForm`, and `AuthContext`.
 
 ### 🎨 Changed (SOC Analyst Dashboard & Routing)
-- **Nested TanStack Start Sub-Routes**:
-  - Refactored `/dashboard` into clean sub-routes: `/dashboard/feed`, `/dashboard/models`, `/dashboard/simulator`, `/dashboard/metrics`.
-- **Nexus.io Clean Blue Theme**:
-  - Multi-tier detection velocity charts, live weekly histograms, 3 KPI metric summary cards, and unified 4-dot brand mark.
-
-### 🛠️ Fixed
-- Configured Astral `ty` and Pyright LSP settings in `.zed/settings.json`, `pyproject.toml`, and `pyrightconfig.json`.
-- Enforced strict parameterized types (`dict[str, float]`, `tuple[dict[str, Any], int]`) across all backend models and extractors.
+- Sub-routes for `/dashboard/feed`, `/dashboard/models`, `/dashboard/simulator`, `/dashboard/metrics`.
+- Nexus.io Clean Blue theme and KPI metric summary cards.

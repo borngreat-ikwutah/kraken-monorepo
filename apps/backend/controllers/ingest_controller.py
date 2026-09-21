@@ -111,7 +111,9 @@ class IngestController:
                 "prediction": top_pred,
                 "severity": severity,
                 "alert": alert_dict,
-                "features": features
+                "features": features,
+                "all_predictions": inference_result.get("all_predictions", [top_pred]),
+                "inference": inference_result
             }, 201
 
         except Exception as e:

@@ -10,6 +10,7 @@ from ml.extractors import NetworkFeatureExtractor, UrlFeatureExtractor, TextFeat
 from ml.models import ModelRegistry
 from routes.auth_routes import auth_bp
 from routes.ingest_routes import ingest_bp
+from routes.dashboard_routes import dashboard_bp
 
 load_dotenv()
 
@@ -21,6 +22,7 @@ CORS(app, resources={r"/api/*": {"origins": ["http://localhost:3000", "http://12
 # Register Modular Route Blueprints
 app.register_blueprint(auth_bp)
 app.register_blueprint(ingest_bp)
+app.register_blueprint(dashboard_bp)
 
 # Initialize Database and ML Model Registry
 print("🚀 Initializing Threat Detection Backend Engine...")
@@ -40,26 +42,35 @@ def health_check():
         ]
     })
 
-
-
 @app.route("/api/alerts", methods=["GET"])
 def get_alerts():
-    """Fetch SOC Analyst alerts filtered by severity and status."""
+    """Fetch SOC Analyst alerts filtered by severity, status, search query, with pagination."""
     severity = request.args.get("severity")
     status = request.args.get("status")
-    limit = int(request.args.get("limit", 50))
+    search = request.args.get("q") or request.args.get("search")
+    limit = int(request.args.get("limit", 100))
+    offset = int(request.args.get("offset", 0))
 
     db = SessionLocal()
     try:
         query = db.query(Alert)
-        if severity:
+        if severity and severity.upper() != "ALL":
             query = query.filter(Alert.severity == severity.upper())
-        if status:
+        if status and status.upper() != "ALL":
             query = query.filter(Alert.status == status.upper())
+        if search:
+            search_pattern = f"%{search}%"
+            query = query.filter(
+                (Alert.summary.ilike(search_pattern)) |
+                (Alert.threat_type.ilike(search_pattern))
+            )
 
-        alerts = query.order_by(Alert.created_at.desc()).limit(limit).all()
+        total_count = query.count()
+        alerts = query.order_by(Alert.created_at.desc()).offset(offset).limit(limit).all()
         return jsonify({
-            "count": len(alerts),
+            "count": total_count,
+            "limit": limit,
+            "offset": offset,
             "alerts": [alert.to_dict() for alert in alerts]
         })
     finally:

@@ -6,12 +6,14 @@ import {
   CheckCircle, 
   ArrowRight
 } from "@phosphor-icons/react"
+import type { IngestionResult } from "../../telemetry/types/ingest.types"
 import { ingestEventApi } from "../../telemetry/api/ingestService"
 
 export function LandingTelemetrySimulator() {
   const [activeTab, setActiveTab] = useState<"network" | "email" | "url">("network")
   const [loading, setLoading] = useState<boolean>(false)
-  const [responseLog, setResponseLog] = useState<any | null>(null)
+  const [responseLog, setResponseLog] = useState<IngestionResult | null>(null)
+  const [errorMessage, setErrorMessage] = useState<string | null>(null)
 
   const sampleEvents = {
     network: {
@@ -48,10 +50,16 @@ export function LandingTelemetrySimulator() {
   const handleSimulate = async () => {
     setLoading(true)
     setResponseLog(null)
-    const payload = sampleEvents[activeTab]
-    const result = await ingestEventApi(payload)
-    setResponseLog(result)
-    setLoading(false)
+    setErrorMessage(null)
+    try {
+      const payload = sampleEvents[activeTab]
+      const result = await ingestEventApi(payload)
+      setResponseLog(result)
+    } catch (err) {
+      setErrorMessage(err instanceof Error ? err.message : "Failed to simulate ingestion")
+    } finally {
+      setLoading(false)
+    }
   }
 
   return (
@@ -142,6 +150,14 @@ export function LandingTelemetrySimulator() {
                 <span>{loading ? "Evaluating in ML Engine..." : "Ingest & Infer Event"}</span>
               </button>
             </div>
+
+            {/* Error Message Box */}
+            {errorMessage && (
+              <div className="mt-6 p-4 rounded-xl bg-rose-950/40 border border-rose-500/40 text-xs font-mono text-rose-300">
+                <p className="font-bold">Ingestion Failed:</p>
+                <p className="mt-1">{errorMessage}</p>
+              </div>
+            )}
 
             {/* Inference Result Box */}
             {responseLog && (

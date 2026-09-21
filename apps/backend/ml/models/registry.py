@@ -41,13 +41,22 @@ class ModelRegistry:
                 "severity": ensemble_pred["severity"]
             }
 
-        elif event_type == "network_flow":
-            pred = self.network_detector.predict(features_float)
-            predictions.append(pred)
-
         elif event_type in ["email", "text", "log"]:
-            pred = self.transformer_evaluator.evaluate(raw_payload, features_float)
-            predictions.append(pred)
+            # Dual-model evaluation: Transformer + Random Forest
+            t_pred = self.transformer_evaluator.evaluate(raw_payload, features_float)
+            rf_pred = self.rf_evaluator.evaluate(features_float)
+            ensemble_pred = EnsembleScorer.score_text_threat(t_pred, rf_pred, features_float)
+
+            return {
+                "top_prediction": ensemble_pred,
+                "all_predictions": [t_pred, rf_pred, ensemble_pred],
+                "severity": ensemble_pred["severity"]
+            }
+
+        elif event_type == "network_flow":
+            iso_pred = self.network_detector.predict(features_float)
+            rf_pred = self.rf_evaluator.evaluate(features_float)
+            predictions = [iso_pred, rf_pred]
 
         else:
             pred = self.rf_evaluator.evaluate(features_float)
