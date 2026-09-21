@@ -1,4 +1,4 @@
-import { Link, useRouterState } from "@tanstack/react-router"
+import { Link, useRouterState, useRouter } from "@tanstack/react-router"
 import { 
   Pulse, 
   Brain, 
@@ -6,6 +6,7 @@ import {
   ChartLineUp, 
   SignOut
 } from "@phosphor-icons/react"
+import { useAuth } from "../../auth/context/AuthContext"
 
 interface DashboardSidebarProps {
   backendStatus: string
@@ -14,7 +15,18 @@ interface DashboardSidebarProps {
 export function DashboardSidebar({ backendStatus }: DashboardSidebarProps) {
   const isOnline = backendStatus.toLowerCase().includes("healthy") || backendStatus.toLowerCase().includes("online")
   const routerState = useRouterState()
+  const router = useRouter()
   const currentPath = routerState.location.pathname
+  const { user, logout } = useAuth()
+
+  const handleLogout = () => {
+    logout()
+    router.navigate({ to: "/login" })
+  }
+
+  const userInitials = user?.name
+    ? user.name.split(" ").map(n => n[0]).join("").toUpperCase().substring(0, 2)
+    : "SA"
 
   const navItems = [
     {
@@ -118,18 +130,27 @@ export function DashboardSidebar({ backendStatus }: DashboardSidebarProps) {
         {/* User Card */}
         <div className="flex items-center justify-between pt-1">
           <div className="flex items-center gap-2.5">
-            <div className="w-8 h-8 rounded-lg bg-neutral-900 text-white flex items-center justify-center font-bold text-xs">
-              SO
+            <div className="w-8 h-8 rounded-full bg-blue-600 text-white flex items-center justify-center font-bold text-xs shadow-2xs">
+              {userInitials}
             </div>
-            <div>
-              <p className="text-xs font-bold text-neutral-900 leading-tight">SOC Analyst</p>
-              <p className="text-[10px] text-neutral-400">School Demo Account</p>
+            <div className="min-w-0 max-w-[120px]">
+              <p className="text-xs font-bold text-neutral-900 leading-tight truncate">
+                {user?.name || "SOC Analyst"}
+              </p>
+              <p className="text-[10px] text-neutral-400 truncate">
+                {user?.organization || user?.email || "School Demo Account"}
+              </p>
             </div>
           </div>
 
-          <Link to="/" className="text-neutral-400 hover:text-neutral-700 p-1 rounded transition-colors" title="Exit to Landing">
+          <button
+            type="button"
+            onClick={handleLogout}
+            className="text-neutral-400 hover:text-neutral-700 p-1.5 rounded-lg hover:bg-neutral-100 transition-colors"
+            title="Logout"
+          >
             <SignOut className="w-4 h-4" />
-          </Link>
+          </button>
         </div>
       </div>
     </aside>

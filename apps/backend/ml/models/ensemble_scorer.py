@@ -66,3 +66,54 @@ class EnsembleScorer:
                 rf_result
             ]
         }
+
+    @staticmethod
+    def score_text_threat(
+        transformer_result: dict[str, Any],
+        rf_result: dict[str, Any],
+        features: dict[str, float]
+    ) -> dict[str, Any]:
+        """
+        Combines Transformer (weight 0.65) and Random Forest (weight 0.35) scores for text/email/log payloads.
+        """
+        t_score = float(transformer_result.get("score", 0.0))
+        rf_score = float(rf_result.get("score", 0.0))
+
+        combined_score = (0.65 * t_score) + (0.35 * rf_score)
+        if t_score >= 0.70 and rf_score >= 0.70:
+            combined_score = min(1.0, combined_score * 1.1)
+
+        if combined_score >= 0.80:
+            severity = "CRITICAL"
+            threat_label = "malicious"
+        elif combined_score >= 0.60:
+            severity = "HIGH"
+            threat_label = "malicious"
+        elif combined_score >= 0.40:
+            severity = "MEDIUM"
+            threat_label = "suspicious"
+        else:
+            severity = "LOW"
+            threat_label = "benign"
+
+        explanation_parts: list[str] = []
+        if features.get("urgency_score", 0.0) >= 0.6:
+            explanation_parts.append("High urgency markers")
+        if features.get("phishing_keyword_count", 0.0) >= 2.0:
+            explanation_parts.append(f"{features.get('phishing_keyword_count', 0):.0f} phishing indicators")
+        if features.get("has_embedded_link", 0.0) > 0:
+            explanation_parts.append("Embedded external link")
+
+        explanation_str = ", ".join(explanation_parts) if explanation_parts else "Standard text NLP baseline"
+
+        return {
+            "model_name": "Ensemble (Transformer + RandomForest)",
+            "score": round(combined_score, 4),
+            "threat_label": threat_label,
+            "severity": severity,
+            "explanation": f"Consensus score: {combined_score:.2%} ({explanation_str})",
+            "models_evaluated": [
+                transformer_result,
+                rf_result
+            ]
+        }

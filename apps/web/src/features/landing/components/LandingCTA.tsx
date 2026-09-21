@@ -1,6 +1,9 @@
 import { Link } from "@tanstack/react-router"
+import { useAuth } from "../../auth/context/AuthContext"
 
 export function LandingCTA() {
+  const { isAuthenticated } = useAuth()
+
   return (
     <section className="py-24 bg-white border-t border-neutral-100">
       <div className="max-w-4xl mx-auto px-6 text-center">
@@ -15,10 +18,10 @@ export function LandingCTA() {
 
         <div className="flex flex-wrap items-center justify-center gap-4">
           <Link
-            to="/dashboard"
+            to={isAuthenticated ? "/dashboard" : "/register"}
             className="px-8 py-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-lg shadow-blue-600/25 transition-all text-sm hover:scale-[1.02] active:scale-[0.98]"
           >
-            Launch console
+            {isAuthenticated ? "Go to Dashboard" : "Get started with free demo"}
           </Link>
         </div>
 

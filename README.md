@@ -67,17 +67,18 @@ kraken-monorepo/
 
 ## 🗺️ Product Roadmap
 
-### Phase 1: Core Pipeline & MVP (Current)
+### Phase 1: Core Pipeline & MVP (Completed)
 - [x] Monorepo structure with Turborepo, Bun, TanStack Start UI, and Flask Backend.
-- [x] Ingestion API & backend structure.
-- [ ] MySQL database schema & feature store integration.
-- [ ] Isolation Forest + Random Forest baseline models.
-- [ ] Hugging Face phishing & malicious URL inference.
+- [x] Ingestion API & backend controller structure (`/api/ingest`, `/api/predict`).
+- [x] Database schema & feature store persistence (MySQL with SQLite fallback).
+- [x] Isolation Forest + Random Forest baseline threat models.
+- [x] Hugging Face phishing & malicious URL inference (`bert-tiny` / DistilBERT).
+- [x] Telemetry Ingestion Sandbox with live Transformer vs. Random Forest visual breakdown cards.
 
-### Phase 2: Analyst Workspace & Feedback Loop
-- [ ] Full SOC Alert Dashboard UI with filtering & severity color coding.
-- [ ] Analyst feedback loop (True Positive / False Positive tagging).
-- [ ] Webhook & email notifications for critical alerts.
+### Phase 2: Analyst Workspace & Feedback Loop (Completed)
+- [x] Full SOC Alert Dashboard UI with filtering & severity color coding (`/dashboard/feed`).
+- [x] Analyst feedback loop (True Positive / False Positive tagging, Acknowledge, Resolve).
+- [x] Real-time detection metrics and analytical histograms (`/dashboard/metrics`).
 
 ### Phase 3: Advanced Investigation & Operations
 - [ ] Historical search, pivot investigation, and log timeline viewer.

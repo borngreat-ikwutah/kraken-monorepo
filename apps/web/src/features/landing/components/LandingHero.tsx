@@ -8,8 +8,10 @@ import {
   Globe, 
   Cpu
 } from "@phosphor-icons/react"
+import { useAuth } from "../../auth/context/AuthContext"
 
 export function LandingHero() {
+  const { isAuthenticated } = useAuth()
   return (
     <section className="relative pt-12 pb-24 sm:pb-32 overflow-hidden bg-white">
       {/* Subtle Dot Grid Background */}
@@ -131,10 +133,10 @@ export function LandingHero() {
           {/* Main Action Button */}
           <div className="mt-8">
             <Link
-              to="/dashboard"
+              to={isAuthenticated ? "/dashboard" : "/register"}
               className="inline-flex items-center justify-center px-8 py-4 rounded-xl font-semibold text-white bg-blue-600 hover:bg-blue-700 active:bg-blue-800 shadow-lg shadow-blue-600/25 transition-all text-sm hover:scale-[1.02] active:scale-[0.98]"
             >
-              Get free demo
+              {isAuthenticated ? "Go to Dashboard" : "Get free demo"}
             </Link>
           </div>
 

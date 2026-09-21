@@ -15,17 +15,24 @@ interface AuthContextType {
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined)
 
-const DEFAULT_USER: User = {
-  id: 1,
-  name: "SOC Analyst",
-  email: "analyst@krakensec.io",
-  organization: "Threat Intelligence Lab",
-  role: "ANALYST"
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(DEFAULT_USER)
-  const [token, setToken] = useState<string | null>("tok_demo_session")
+  const [user, setUser] = useState<User | null>(() => {
+    if (typeof window === "undefined") return null
+    try {
+      const savedUser = localStorage.getItem("krakensec_auth_user")
+      return savedUser ? JSON.parse(savedUser) : null
+    } catch {
+      return null
+    }
+  })
+  const [token, setToken] = useState<string | null>(() => {
+    if (typeof window === "undefined") return null
+    try {
+      return localStorage.getItem("krakensec_auth_token")
+    } catch {
+      return null
+    }
+  })
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   useEffect(() => {
