@@ -7,7 +7,7 @@ import { QueryHistoryTable } from "./QueryHistoryTable"
 export function IngestionSandbox() {
   const ingest = useIngest()
   const [refreshKey, setRefreshKey] = useState<number>(0)
-  const { logs, total, loading, error, refresh } = useTelemetryLogs(50, refreshKey)
+  const telemetry = useTelemetryLogs(refreshKey)
 
   // Refresh the DB-backed table each time a new check completes
   useEffect(() => {
@@ -22,11 +22,18 @@ export function IngestionSandbox() {
       <TelemetryWizard ingest={ingest} />
 
       <QueryHistoryTable
-        logs={logs}
-        total={total}
-        loading={loading}
-        error={error}
-        onRefresh={refresh}
+        logs={telemetry.logs}
+        total={telemetry.total}
+        loading={telemetry.loading}
+        error={telemetry.error}
+        onRefresh={telemetry.refresh}
+        page={telemetry.page}
+        totalPages={telemetry.totalPages}
+        onPageChange={telemetry.setPage}
+        search={telemetry.search}
+        onSearchChange={telemetry.setSearch}
+        eventType={telemetry.eventType}
+        onEventTypeChange={telemetry.setEventType}
       />
     </div>
   )
