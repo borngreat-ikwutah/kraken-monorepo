@@ -1,4 +1,4 @@
-import type { CustomIngestPayload, IngestionResult } from "../types/ingest.types"
+import type { CustomIngestPayload, IngestionResult, TelemetryLogsResponse } from "../types/ingest.types"
 
 const BACKEND_URL = "http://localhost:5000"
 
@@ -60,4 +60,17 @@ export const ingestTelemetryApi = async (type: "network" | "phishing" | "url"): 
   }
 
   return await ingestEventApi(payload)
+}
+
+export const fetchTelemetryLogsApi = async (limit = 50): Promise<TelemetryLogsResponse> => {
+  const res = await fetch(`${BACKEND_URL}/api/events?limit=${limit}`, {
+    signal: AbortSignal.timeout(8000),
+  })
+
+  if (!res.ok) {
+    throw new Error(`Server returned HTTP ${res.status}`)
+  }
+
+  const json = (await res.json()) as TelemetryLogsResponse
+  return json
 }
