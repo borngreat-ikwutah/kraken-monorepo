@@ -62,8 +62,30 @@ export const ingestTelemetryApi = async (type: "network" | "phishing" | "url"): 
   return await ingestEventApi(payload)
 }
 
-export const fetchTelemetryLogsApi = async (limit = 50): Promise<TelemetryLogsResponse> => {
-  const res = await fetch(`${BACKEND_URL}/api/events?limit=${limit}`, {
+export interface FetchTelemetryLogsParams {
+  limit?: number
+  offset?: number
+  search?: string
+  eventType?: string
+}
+
+export const fetchTelemetryLogsApi = async (
+  params: FetchTelemetryLogsParams | number = {}
+): Promise<TelemetryLogsResponse> => {
+  const opts: FetchTelemetryLogsParams =
+    typeof params === "number" ? { limit: params } : params
+  const limit = opts.limit ?? 10
+  const offset = opts.offset ?? 0
+  const query = new URLSearchParams()
+  query.set("limit", String(limit))
+  query.set("offset", String(offset))
+  if (opts.search && opts.search.trim().length > 0) {
+    query.set("q", opts.search.trim())
+  }
+  if (opts.eventType && opts.eventType !== "ALL") {
+    query.set("event_type", opts.eventType)
+  }
+  const res = await fetch(`${BACKEND_URL}/api/events?${query.toString()}`, {
     signal: AbortSignal.timeout(8000),
   })
 
