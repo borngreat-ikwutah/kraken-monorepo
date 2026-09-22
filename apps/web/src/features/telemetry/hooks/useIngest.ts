@@ -18,7 +18,7 @@ export function useIngest() {
   const [inputDstPort, setInputDstPort] = useState<string>("4444")
   const [inputBytes, setInputBytes] = useState<string>("1250000")
   const [inputPackets, setInputPackets] = useState<string>("8500")
-  
+
   const [customJsonPayload, setCustomJsonPayload] = useState<string>(`{
   "event_type": "url",
   "source_ip": "185.220.101.5",

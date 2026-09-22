@@ -66,3 +66,35 @@ export interface IngestionResult {
 }
 
 export type SubmissionMode = "url" | "payload" | "email" | "flow"
+
+export interface TelemetryLogPrediction {
+  model_name: string
+  score: number
+  threat_label: string
+  explanation: string | null
+}
+
+export interface TelemetryLogAlert {
+  id: number
+  severity: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "BENIGN"
+  status: string
+}
+
+export interface TelemetryLogEntry {
+  id: number
+  event_type: string
+  source_ip: string | null
+  destination_ip: string | null
+  raw_payload: string
+  created_at: string | null
+  prediction: TelemetryLogPrediction | null
+  alert: TelemetryLogAlert | null
+}
+
+export interface TelemetryLogsResponse {
+  status: string
+  count: number
+  limit: number
+  offset: number
+  events: TelemetryLogEntry[]
+}

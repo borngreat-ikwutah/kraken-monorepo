@@ -152,3 +152,85 @@ class IngestController:
             }, 200
         except Exception as e:
             return {"status": "error", "message": f"Prediction failed: {str(e)}"}, 500
+
+    @classmethod
+    def get_events(
+        cls,
+        limit: int = 50,
+        offset: int = 0,
+        event_type: str | None = None,
+        search: str | None = None,
+    ) -> tuple[dict[str, Any], int]:
+        """Returns persisted telemetry logs with latest prediction + alert (if any)."""
+        db = SessionLocal()
+        try:
+            query = db.query(Event)
+            if event_type and event_type.upper() != "ALL":
+                query = query.filter(Event.event_type == event_type)
+            if search:
+                search_pattern = f"%{search}%"
+                query = query.filter(
+                    (Event.raw_payload.ilike(search_pattern))
+                    | (Event.source_ip.ilike(search_pattern))
+                )
+
+            total_count: int = query.count()
+            events: list[Event] = (
+                query.order_by(Event.created_at.desc()).offset(offset).limit(limit).all()
+            )
+
+            event_dicts: list[dict[str, Any]] = []
+            for event_obj in events:
+                prediction_obj: Prediction | None = (
+                    db.query(Prediction)
+                    .filter(Prediction.event_id == event_obj.id)
+                    .order_by(Prediction.created_at.desc())
+                    .first()
+                )
+                alert_obj: Alert | None = None
+                if prediction_obj is not None:
+                    alert_obj = (
+                        db.query(Alert)
+                        .filter(Alert.prediction_id == prediction_obj.id)
+                        .order_by(Alert.created_at.desc())
+                        .first()
+                    )
+                event_dicts.append(
+                    {
+                        "id": event_obj.id,
+                        "event_type": event_obj.event_type,
+                        "source_ip": event_obj.source_ip,
+                        "destination_ip": event_obj.destination_ip,
+                        "raw_payload": event_obj.raw_payload,
+                        "created_at": event_obj.created_at.isoformat()
+                        if event_obj.created_at
+                        else None,
+                        "prediction": {
+                            "model_name": prediction_obj.model_name,
+                            "score": prediction_obj.score,
+                            "threat_label": prediction_obj.threat_label,
+                            "explanation": prediction_obj.explanation,
+                        }
+                        if prediction_obj is not None
+                        else None,
+                        "alert": {
+                            "id": alert_obj.id,
+                            "severity": alert_obj.severity,
+                            "status": alert_obj.status,
+                        }
+                        if alert_obj is not None
+                        else None,
+                    }
+                )
+
+            return {
+                "status": "success",
+                "count": total_count,
+                "limit": limit,
+                "offset": offset,
+                "events": event_dicts,
+            }, 200
+        except Exception as e:
+            return {"status": "error", "message": f"Failed to fetch telemetry logs: {str(e)}"}, 500
+        finally:
+            db.close()

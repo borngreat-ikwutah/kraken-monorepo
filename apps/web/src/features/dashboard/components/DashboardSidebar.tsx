@@ -138,7 +138,7 @@ export function DashboardSidebar({ backendStatus }: DashboardSidebarProps) {
                 {user?.name || "SOC Analyst"}
               </p>
               <p className="text-[10px] text-neutral-400 truncate">
-                {user?.organization || user?.email || "School Demo Account"}
+                {user?.organization || user?.email || "KrakenSec Ops"}
               </p>
             </div>
           </div>
