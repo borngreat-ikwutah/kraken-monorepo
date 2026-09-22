@@ -41,7 +41,12 @@ export function IngestionSandbox() {
     flushNow,
     pushToBuffer,
     refresh: refreshAlerts
-  } = useAlerts({ autoRefreshInterval: 3500, flushIntervalMs: 3500, maxDisplayed: 50 })
+  } = useAlerts({
+    autoRefreshInterval: 3500,
+    flushIntervalMs: 3500,
+    maxDisplayed: 50,
+    autoSelectFirst: true
+  })
 
   // When a new alert is generated from the ingestion pipeline, push directly into silent buffer
   useEffect(() => {
@@ -95,7 +100,7 @@ export function IngestionSandbox() {
                 {result && (
                   <Badge className="bg-emerald-100 text-emerald-800 border-emerald-200 text-[10px] font-semibold flex items-center gap-1">
                     <CheckCircle className="w-3 h-3" weight="fill" />
-                    <span>Database Synced</span>
+                    <span>Processed</span>
                   </Badge>
                 )}
               </div>
