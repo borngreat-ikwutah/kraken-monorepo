@@ -129,6 +129,12 @@ export interface UseAlertsOptions {
   autoRefreshInterval?: number
   flushIntervalMs?: number
   maxDisplayed?: number
+  /**
+   * Selects the most recent incident on the very first load.
+   * Defaults to `false` so detail surfaces (e.g. the triage drawer) only open
+   * when an analyst explicitly picks an incident.
+   */
+  autoSelectFirst?: boolean
 }
 
 

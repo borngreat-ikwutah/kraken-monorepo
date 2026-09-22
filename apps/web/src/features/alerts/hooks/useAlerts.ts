@@ -2,13 +2,33 @@ import { useState, useEffect, useCallback, useRef } from "react"
 import type { AlertItem, UseAlertsOptions } from "../types/alert.types"
 import { fetchAlertsFromApi, submitAlertFeedbackApi } from "../api/alertService"
 
+/**
+ * Resolves which incident stays selected after a fresh fetch.
+ *
+ * Selection is never pre-seeded unless the caller opted in via
+ * `autoSelectFirst`, so detail surfaces (drawers, panels) only open when an
+ * analyst explicitly picks an incident. Once nothing is selected the hook keeps
+ * it that way instead of silently re-selecting the newest alert on every poll.
+ */
+export function resolveSelectedAlert(
+  previous: AlertItem | null,
+  fetched: AlertItem[],
+  isFirstLoad: boolean,
+  autoSelectFirst: boolean
+): AlertItem | null {
+  if (isFirstLoad) return autoSelectFirst ? (fetched[0] ?? null) : null
+  if (!previous) return null
+  return fetched.find(alert => alert.id === previous.id) ?? null
+}
+
 export function useAlerts(options: UseAlertsOptions = {}) {
   const {
     initialSeverity = "ALL",
     initialStatus = "ALL",
     autoRefreshInterval = 3000,
     flushIntervalMs = 3500,
-    maxDisplayed = 100
+    maxDisplayed = 100,
+    autoSelectFirst = false
   } = options
 
   const [alerts, setAlerts] = useState<AlertItem[]>([])
@@ -72,18 +92,12 @@ export function useAlerts(options: UseAlertsOptions = {}) {
     try {
       const fetched = await fetchAlertsFromApi(filterSeverity, filterStatus, searchTerm)
       
-      if (isInitialLoadRef.current || !silent) {
+      const isFirstLoad = isInitialLoadRef.current
+      if (isFirstLoad || !silent) {
         isInitialLoadRef.current = false
         // Direct update on initial load or manual user filter change
         setAlerts(fetched.slice(0, maxDisplayed))
-        setSelectedAlert(prev => {
-          if (!prev && fetched.length > 0) return fetched[0]
-          if (prev) {
-            const matched = fetched.find(a => a.id === prev.id)
-            return matched || (fetched.length > 0 ? fetched[0] : null)
-          }
-          return null
-        })
+        setSelectedAlert(prev => resolveSelectedAlert(prev, fetched, isFirstLoad, autoSelectFirst))
       } else {
         // High-velocity stream: push incoming updates into silent bufferRef
         setAlerts(currentAlerts => {
@@ -99,7 +113,7 @@ export function useAlerts(options: UseAlertsOptions = {}) {
     } finally {
       if (!silent) setLoading(false)
     }
-  }, [filterSeverity, filterStatus, searchTerm, maxDisplayed, pushToBuffer])
+  }, [filterSeverity, filterStatus, searchTerm, maxDisplayed, pushToBuffer, autoSelectFirst])
 
   // Reload when filters change
   useEffect(() => {
@@ -153,7 +167,8 @@ export function useAlerts(options: UseAlertsOptions = {}) {
     return updated
   }
 
-  const selectAlert = (alert: AlertItem) => {
+  // `null` clears the selection, allowing the triage drawer to be dismissed
+  const selectAlert = (alert: AlertItem | null) => {
     setSelectedAlert(alert)
   }
 
