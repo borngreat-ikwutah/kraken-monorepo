@@ -68,13 +68,13 @@ export function LandingTelemetrySimulator() {
         
         <div className="text-center max-w-3xl mx-auto mb-12">
           <span className="text-xs font-mono uppercase tracking-wider text-cyan-400 font-semibold">
-            Interactive Test Sandbox
+            Telemetry API Evaluation
           </span>
           <h2 className="text-3xl sm:text-4xl font-extrabold text-neutral-100 mt-2">
             Simulate Security Telemetry Ingest
           </h2>
           <p className="text-neutral-400 mt-3 text-base sm:text-lg">
-            Dispatch mock security events directly to the detection pipeline API and observe ML model inference responses.
+            Dispatch sample security events directly to the detection pipeline API and observe ML model inference responses.
           </p>
         </div>
 
